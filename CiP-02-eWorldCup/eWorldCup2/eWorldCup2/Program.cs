@@ -1,5 +1,9 @@
-﻿using eWorldCup2.Application;
-using eWorldCup2.Domain;
+﻿
+using eWorldCup2.Application;
+using Microsoft.EntityFrameworkCore;
+using eWorldCup2.Infrastructure;
+using eWorldCup2.Domain.Models;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +22,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext<WorldCupDbContext>(options => 
+options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 

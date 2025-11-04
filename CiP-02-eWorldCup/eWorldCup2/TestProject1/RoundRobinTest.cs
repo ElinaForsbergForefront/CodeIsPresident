@@ -1,7 +1,7 @@
 ﻿using System.Reflection.Metadata;
 using System.Xml.Linq;
 using eWorldCup2.Application;
-using eWorldCup2.Domain;
+using eWorldCup2.Domain.Models;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace RoundRobinTest

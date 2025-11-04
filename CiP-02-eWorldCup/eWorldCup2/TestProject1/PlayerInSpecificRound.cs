@@ -1,4 +1,5 @@
 ﻿using eWorldCup2.Application;
+using eWorldCup2.Domain.Models;
 
 namespace eWorldCup2.Tests;
 
@@ -15,7 +16,7 @@ public class PlayerInSpecificRound
     public void Should_Return_Ethan_Fiona_When_Id_Is_4()
     {
 
-        var players = new List<eWorldCup2.Domain.Player>
+        var players = new List<Player>
         {
             new(1, "Alice"),
             new(2, "Bob"),

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using eWorldCup2.Domain;
+using eWorldCup2.Domain.Models;
 using eWorldCup2.Domain.Validation;
 
 namespace eWorldCup2.Application
