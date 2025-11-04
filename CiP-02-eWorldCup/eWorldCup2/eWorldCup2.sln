@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eWorldCup2.Application", "e
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "eworldcup2.web", "eWorldCup2.Web\eworldcup2.web.esproj", "{927D6C7D-B9E1-CBA6-9917-478E2BF7EB64}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eWorldCup2.Infrastructure", "eWorldCup2.Infrastructure\eWorldCup2.Infrastructure.csproj", "{7133C8E8-1242-4D21-8373-58862BE0F4C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{927D6C7D-B9E1-CBA6-9917-478E2BF7EB64}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{927D6C7D-B9E1-CBA6-9917-478E2BF7EB64}.Release|Any CPU.Build.0 = Release|Any CPU
 		{927D6C7D-B9E1-CBA6-9917-478E2BF7EB64}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{7133C8E8-1242-4D21-8373-58862BE0F4C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7133C8E8-1242-4D21-8373-58862BE0F4C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7133C8E8-1242-4D21-8373-58862BE0F4C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7133C8E8-1242-4D21-8373-58862BE0F4C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

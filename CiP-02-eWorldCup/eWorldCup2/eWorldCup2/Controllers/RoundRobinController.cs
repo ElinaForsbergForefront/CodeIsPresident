@@ -1,6 +1,8 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 using eWorldCup2.Application;
-using eWorldCup2.Domain;
+using eWorldCup2.Domain.Models;
+using eWorldCup2.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,35 +12,23 @@ namespace eWorldCup2.Api.Controllers
     [ApiController]
     public class RoundRobinController : ControllerBase
     {
+        private readonly WorldCupDbContext dbContext;
+
+        public RoundRobinController(WorldCupDbContext dbContext)
+        {
+            this.dbContext = dbContext;
+        }
+
         [HttpGet("players")]
         public IActionResult GetAllPlayers()
         {
-            var players = new List<Player>
-            {
-                new(1, "Alice"),
-                new(2, "Bob"),
-                new(3, "Charlie"),
-                new(4, "Diana"),
-                new(5, "Ethan"),
-                new(6, "Fiona"),
-                new(7, "George"),
-                new(8, "Hannah"),
-                new(9, "Isaac"),
-                new(10, "Julia"),
-                new(11, "Kevin"),
-                new(12, "Laura"),
-                new(13, "Michael"),
-                new(14, "Nina"),
-                new(15, "Oscar"),
-                new(16, "Paula"),
-                new(17, "Quentin"),
-                new(18, "Rachel"),
-                new(19, "Samuel"),
-                new(20, "Tina")
-            };
+            var players = dbContext.Players.ToList();
 
             return Ok(players);
         }
+
+       
+
 
         [HttpGet("/rounds/{specificRound}")]
         //Return all round robin matches in a specific round
