@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { FormControl, InputLabel, Select, MenuItem, Stack, Button } from '@mui/material'
 import type { Player } from '../types/round'
 // import { getPlayers } from '../api/roundRobin' // om du har endpointen
@@ -19,7 +19,7 @@ const SAMPLE: Player[] = [
 ]
 
 export default function PlayerSelector({ onSelect }: Props) {
-  const [players, setPlayers] = useState<Player[]>(SAMPLE)
+  const [players] = useState<Player[]>(SAMPLE)
   const [selected, setSelected] = useState<number>(0) // 0-baserat index
 
   // Vill du hämta från API istället:

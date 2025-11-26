@@ -1,10 +1,12 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
+using eWorldCup2.Api.Dtos;
 using eWorldCup2.Application;
 using eWorldCup2.Domain.Models;
 using eWorldCup2.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace eWorldCup2.Api.Controllers
 {
@@ -27,26 +29,46 @@ namespace eWorldCup2.Api.Controllers
             return Ok(players);
         }
 
-       
+        [HttpPost("playersCreate")]
+        public async Task<IActionResult> AddPlayer([FromBody] PlayerDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                return BadRequest(new { Error = "Spelarnamn får inte vara tomt." });
+            }
 
+            if (await dbContext.Players.AnyAsync(p => p.Name == dto.Name))
+            {
+                return BadRequest(new { Error = $"Spelare '{dto.Name}' finns redan." });
+            }
 
-        [HttpGet("/rounds/{specificRound}")]
+            var player = new Player(0, dto.Name);
+            dbContext.Players.Add(player);
+            await dbContext.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetAllPlayers), new { id = player.Id }, player);
+        }
+
+        [HttpDelete("playersDelete/{id}")]
+        public async Task<IActionResult> DeletePlayer(int id)
+        {
+            var player = await dbContext.Players.FindAsync(id);
+            if (player == null)
+            {
+                return NotFound();
+            }
+
+            dbContext.Players.Remove(player);
+            await dbContext.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpGet("rounds/{specificRound}")]
         //Return all round robin matches in a specific round
         public IActionResult GetPlayersSpecificRound(int specificRound)
         {
-            var players = new List<Player>
-            {
-                new(1, "Alice"),
-                new(2, "Bob"),
-                new(3, "Charlie"),
-                new(4, "Diana"),
-                new(5, "Ethan"),
-                new(6, "Fiona"),
-                new(7, "George"),
-                new(8, "Hannah"),
-                new(9, "Isaac"),
-                new(10, "Julia"),
-            };
+            var players = dbContext.Players.ToList();
 
             var roundRobinService = new RoundRobinService();
             var result = roundRobinService.GetRoundPairs(players, specificRound); 
@@ -64,7 +86,7 @@ namespace eWorldCup2.Api.Controllers
             }
         }
 
-        [HttpGet("/rounds/max/{numberOfPlayers}")]
+        [HttpGet("rounds/max/{numberOfPlayers}")]
         //RETURN max rounds for n players
         public IActionResult GetMaxRounds(int numberOfPlayers)
         {
@@ -81,7 +103,7 @@ namespace eWorldCup2.Api.Controllers
             }
         }
 
-        [HttpGet("/match/remaining")]
+        [HttpGet("match/remaining")]
 
         public IActionResult GetUniquePairsAfterXRounds(int numberOfPlayers, int completedRounds)
         {
@@ -104,29 +126,7 @@ namespace eWorldCup2.Api.Controllers
         //Return specific round match for a specific player
         public IActionResult GetSpecificRoundMatches(int numberOfPlayers, int id, int specificRound)
         {
-            var players = new List<Player>
-            {
-                new(1, "Alice"),
-                new(2, "Bob"),
-                new(3, "Charlie"),
-                new(4, "Diana"),
-                new(5, "Ethan"),
-                new(6, "Fiona"),
-                new(7, "George"),
-                new(8, "Hannah"),
-                new(9, "Isaac"),
-                new(10, "Julia"),
-                new(11, "Kevin"),
-                new(12, "Laura"),
-                new(13, "Michael"),
-                new(14, "Nina"),
-                new(15, "Oscar"),
-                new(16, "Paula"),
-                new(17, "Quentin"),
-                new(18, "Rachel"),
-                new(19, "Samuel"),
-                new(20, "Tina")
-            };
+            var players = dbContext.Players.ToList();
 
 
             var round = new SpecifikPlayerRound();
@@ -149,29 +149,7 @@ namespace eWorldCup2.Api.Controllers
         //Return all matches for a specific player
         public IActionResult GetAllMatchesForPlayer(int numberOfPlayers, int id)
         {
-            var players = new List<Player>
-            {
-                new(1, "Alice"),
-                new(2, "Bob"),
-                new(3, "Charlie"),
-                new(4, "Diana"),
-                new(5, "Ethan"),
-                new(6, "Fiona"),
-                new(7, "George"),
-                new(8, "Hannah"),
-                new(9, "Isaac"),
-                new(10, "Julia"),
-                new(11, "Kevin"),
-                new(12, "Laura"),
-                new(13, "Michael"),
-                new(14, "Nina"),
-                new(15, "Oscar"),
-                new(16, "Paula"),
-                new(17, "Quentin"),
-                new(18, "Rachel"),
-                new(19, "Samuel"),
-                new(20, "Tina")
-            };
+            var players = dbContext.Players.ToList();
 
             var round = new SpecifikPlayerRound();
             var matches = new List<object>();
@@ -204,30 +182,7 @@ namespace eWorldCup2.Api.Controllers
         //Alias till “direktfråga” för spelare i i runda d, men med namn/objekt.
         public IActionResult GetSpecificRoundMatchesByName(string name, int specificRound)
         {
-            var players = new List<Player>
-            {
-                new(1, "Alice"),
-                new(2, "Bob"),
-                new(3, "Charlie"),
-                new(4, "Diana"),
-                new(5, "Ethan"),
-                new(6, "Fiona"),
-                new(7, "George"),
-                new(8, "Hannah"),
-                new(9, "Isaac"),
-                new(10, "Julia"),
-                new(11, "Kevin"),
-                new(12, "Laura"),
-                new(13, "Michael"),
-                new(14, "Nina"),
-                new(15, "Oscar"),
-                new(16, "Paula"),
-                new(17, "Quentin"),
-                new(18, "Rachel"),
-                new(19, "Samuel"),
-                new(20, "Tina")
-            };
-
+            var players = dbContext.Players.ToList();
             var round = new SpecifikPlayerRound();
 
             var getId = players.Find(p => p.Name == name);
