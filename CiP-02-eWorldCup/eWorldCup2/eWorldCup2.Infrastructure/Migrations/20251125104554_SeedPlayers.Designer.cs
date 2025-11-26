@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using eWorldCup2.Infrastructure;
 
@@ -10,9 +11,11 @@ using eWorldCup2.Infrastructure;
 namespace eWorldCup2.Infrastructure.Migrations
 {
     [DbContext(typeof(WorldCupDbContext))]
-    partial class WorldCupDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251125104554_SeedPlayers")]
+    partial class SeedPlayers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
