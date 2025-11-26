@@ -16,6 +16,7 @@ namespace eWorldCup2.Api.Controllers
         [HttpGet("tournament/start")]
         public IActionResult StartTournament()
         {
+            ///
             //Startar ny turnering.Skapar par för runda 1 baserat
             //på din round-robin - funktion.Body: 
             //{ "name": "Alice", "players": 8 }.
