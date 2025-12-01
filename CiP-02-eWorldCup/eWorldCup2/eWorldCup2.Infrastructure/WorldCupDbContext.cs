@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using eWorldCup2.Domain.Models;
+﻿using eWorldCup2.Domain.Models;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace eWorldCup2.Infrastructure
 {
@@ -9,6 +10,8 @@ namespace eWorldCup2.Infrastructure
   
 
         public DbSet<Player> Players { get; set; }
+        public DbSet<Tournament> Tournaments { get; set; }
+        public DbSet<Match> Matches { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

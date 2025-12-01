@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ClassLibrary1\eWorldCup2.Domain.csproj" />
+    <ProjectReference Include="..\eWorldCup2.Infrastructure\eWorldCup2.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

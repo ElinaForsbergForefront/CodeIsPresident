@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using eWorldCup2.Domain;
+using eWorldCup2.Domain.ROP;
 using eWorldCup2.Domain.Validation;
 
 namespace eWorldCup2.Application

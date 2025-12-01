@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace eWorldCup2.Domain
+namespace eWorldCup2.Domain.ROP
 {
     public static class ResultExtensions
     {

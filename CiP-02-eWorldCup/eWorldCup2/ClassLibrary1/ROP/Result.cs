@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace eWorldCup2.Domain
+namespace eWorldCup2.Domain.ROP
 {
     public readonly struct Result
     {
