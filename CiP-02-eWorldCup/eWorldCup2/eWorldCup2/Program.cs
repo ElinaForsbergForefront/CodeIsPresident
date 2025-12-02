@@ -1,9 +1,18 @@
 ﻿
 using eWorldCup2.Application;
 using eWorldCup2.Application.Commands.AdvanceRound;
+using eWorldCup2.Application.Commands.CreatePlayer;
+using eWorldCup2.Application.Commands.DeletePlayer;
 using eWorldCup2.Application.Commands.PlayMove;
 using eWorldCup2.Application.Commands.StartTournament;
+using eWorldCup2.Application.Queries.GetAllPlayers;
 using eWorldCup2.Application.Queries.GetFinalResults;
+using eWorldCup2.Application.Queries.GetMaxRounds;
+using eWorldCup2.Application.Queries.GetPlayerMatch;
+using eWorldCup2.Application.Queries.GetPlayerMatchByName;
+using eWorldCup2.Application.Queries.GetPlayerSchedule;
+using eWorldCup2.Application.Queries.GetRemainingPairs;
+using eWorldCup2.Application.Queries.GetRoundPairs;
 using eWorldCup2.Application.Queries.GetTournamentStatus;
 using eWorldCup2.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +37,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<RoundRobinService>();
+builder.Services.AddScoped<MaxRoundsCalculator>();
+builder.Services.AddScoped<RemainingPairsCalculator>();
+builder.Services.AddScoped<SpecifikPlayerRound>();
 //builder.Services.AddScoped<TournamentService>();
 
 // Add command handlers
@@ -38,6 +50,20 @@ builder.Services.AddScoped<AdvanceRoundCommandHandler>();
 // Add query handlers
 builder.Services.AddScoped<GetTournamentStatusQueryHandler>();
 builder.Services.AddScoped<GetFinalResultsQueryHandler>();
+
+
+// Player command handlers
+builder.Services.AddScoped<CreatePlayerCommandHandler>();
+builder.Services.AddScoped<DeletePlayerCommandHandler>();
+
+// RoundRobin query handlers
+builder.Services.AddScoped<GetAllPlayersQueryHandler>();
+builder.Services.AddScoped<GetRoundPairsQueryHandler>();
+builder.Services.AddScoped<GetMaxRoundsQueryHandler>();
+builder.Services.AddScoped<GetRemainingPairsQueryHandler>();
+builder.Services.AddScoped<GetPlayerMatchQueryHandler>();
+builder.Services.AddScoped<GetPlayerScheduleQueryHandler>();
+builder.Services.AddScoped<GetPlayerMatchByNameQueryHandler>();
 
 builder.Services.AddDbContext<WorldCupDbContext>(options => 
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
