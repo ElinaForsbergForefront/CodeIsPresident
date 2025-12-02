@@ -1,8 +1,12 @@
 ﻿
 using eWorldCup2.Application;
+using eWorldCup2.Application.Commands.AdvanceRound;
+using eWorldCup2.Application.Commands.PlayMove;
+using eWorldCup2.Application.Commands.StartTournament;
+using eWorldCup2.Application.Queries.GetFinalResults;
+using eWorldCup2.Application.Queries.GetTournamentStatus;
 using eWorldCup2.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using eWorldCup2.Application.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,8 +28,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<RoundRobinService>();
-builder.Services.AddScoped<TournamentService>();
+//builder.Services.AddScoped<TournamentService>();
 
+// Add command handlers
+builder.Services.AddScoped<StartTournamentCommandHandler>();
+builder.Services.AddScoped<PlayMoveCommandHandler>();
+builder.Services.AddScoped<AdvanceRoundCommandHandler>();
+
+// Add query handlers
+builder.Services.AddScoped<GetTournamentStatusQueryHandler>();
+builder.Services.AddScoped<GetFinalResultsQueryHandler>();
 
 builder.Services.AddDbContext<WorldCupDbContext>(options => 
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
