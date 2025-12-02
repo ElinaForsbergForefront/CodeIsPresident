@@ -1,12 +1,14 @@
-﻿using System.Numerics;
-using System.Runtime.CompilerServices;
-using eWorldCup2.Api.Dtos;
-using eWorldCup2.Application;
-using eWorldCup2.Domain.Models;
-using eWorldCup2.Infrastructure;
-using Microsoft.AspNetCore.Http;
+﻿using eWorldCup2.Api.Dtos;
+using eWorldCup2.Application.Commands.CreatePlayer;
+using eWorldCup2.Application.Commands.DeletePlayer;
+using eWorldCup2.Application.Queries.GetAllPlayers;
+using eWorldCup2.Application.Queries.GetRoundPairs;
+using eWorldCup2.Application.Queries.GetMaxRounds;
+using eWorldCup2.Application.Queries.GetRemainingPairs;
+using eWorldCup2.Application.Queries.GetPlayerMatch;
+using eWorldCup2.Application.Queries.GetPlayerSchedule;
+using eWorldCup2.Application.Queries.GetPlayerMatchByName;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace eWorldCup2.Api.Controllers
 {
@@ -14,197 +16,185 @@ namespace eWorldCup2.Api.Controllers
     [ApiController]
     public class RoundRobinController : ControllerBase
     {
-        private readonly WorldCupDbContext dbContext;
+        private readonly CreatePlayerCommandHandler createPlayerHandler;
+        private readonly DeletePlayerCommandHandler deletePlayerHandler;
+        private readonly GetAllPlayersQueryHandler getAllPlayersHandler;
+        private readonly GetRoundPairsQueryHandler getRoundPairsHandler;
+        private readonly GetMaxRoundsQueryHandler getMaxRoundsHandler;
+        private readonly GetRemainingPairsQueryHandler getRemainingPairsHandler;
+        private readonly GetPlayerMatchQueryHandler getPlayerMatchHandler;
+        private readonly GetPlayerScheduleQueryHandler getPlayerScheduleHandler;
+        private readonly GetPlayerMatchByNameQueryHandler getPlayerMatchByNameHandler;
 
-        public RoundRobinController(WorldCupDbContext dbContext)
+        public RoundRobinController(
+            CreatePlayerCommandHandler createPlayerHandler,
+            DeletePlayerCommandHandler deletePlayerHandler,
+            GetAllPlayersQueryHandler getAllPlayersHandler,
+            GetRoundPairsQueryHandler getRoundPairsHandler,
+            GetMaxRoundsQueryHandler getMaxRoundsHandler,
+            GetRemainingPairsQueryHandler getRemainingPairsHandler,
+            GetPlayerMatchQueryHandler getPlayerMatchHandler,
+            GetPlayerScheduleQueryHandler getPlayerScheduleHandler,
+            GetPlayerMatchByNameQueryHandler getPlayerMatchByNameHandler)
         {
-            this.dbContext = dbContext;
+            this.createPlayerHandler = createPlayerHandler;
+            this.deletePlayerHandler = deletePlayerHandler;
+            this.getAllPlayersHandler = getAllPlayersHandler;
+            this.getRoundPairsHandler = getRoundPairsHandler;
+            this.getMaxRoundsHandler = getMaxRoundsHandler;
+            this.getRemainingPairsHandler = getRemainingPairsHandler;
+            this.getPlayerMatchHandler = getPlayerMatchHandler;
+            this.getPlayerScheduleHandler = getPlayerScheduleHandler;
+            this.getPlayerMatchByNameHandler = getPlayerMatchByNameHandler;
         }
 
         [HttpGet("players")]
-        public IActionResult GetAllPlayers()
+        public async Task<IActionResult> GetAllPlayers()
         {
-            var players = dbContext.Players.ToList();
+            var query = new GetAllPlayersQuery();
+            var result = await getAllPlayersHandler.HandleAsync(query);
 
-            return Ok(players);
+            if (!result.IsSuccess)
+            {
+                return BadRequest(new { message = result.Error!.Message });
+            }
+
+            return Ok(result.Value!.Players);
         }
 
         [HttpPost("playersCreate")]
         public async Task<IActionResult> AddPlayer([FromBody] PlayerDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Name))
+            var command = new CreatePlayerCommand(dto.Name);
+            var result = await createPlayerHandler.HandleAsync(command);
+
+            if (!result.IsSuccess)
             {
-                return BadRequest(new { Error = "Spelarnamn får inte vara tomt." });
+                return result.Error!.Code switch
+                {
+                    "INVALID_NAME" => BadRequest(new { Error = result.Error.Message }),
+                    "PLAYER_EXISTS" => BadRequest(new { Error = result.Error.Message }),
+                    _ => BadRequest(new { Error = result.Error.Message })
+                };
             }
 
-            if (await dbContext.Players.AnyAsync(p => p.Name == dto.Name))
-            {
-                return BadRequest(new { Error = $"Spelare '{dto.Name}' finns redan." });
-            }
-
-            var player = new Player(0, dto.Name);
-            dbContext.Players.Add(player);
-            await dbContext.SaveChangesAsync();
-
+            var player = result.Value!.Player;
             return CreatedAtAction(nameof(GetAllPlayers), new { id = player.Id }, player);
         }
 
         [HttpDelete("playersDelete/{id}")]
         public async Task<IActionResult> DeletePlayer(int id)
         {
-            var player = await dbContext.Players.FindAsync(id);
-            if (player == null)
-            {
-                return NotFound();
-            }
+            var command = new DeletePlayerCommand(id);
+            var result = await deletePlayerHandler.HandleAsync(command);
 
-            dbContext.Players.Remove(player);
-            await dbContext.SaveChangesAsync();
+            if (!result.IsSuccess)
+            {
+                return result.Error!.Code switch
+                {
+                    "PLAYER_NOT_FOUND" => NotFound(new { message = result.Error.Message }),
+                    _ => BadRequest(new { message = result.Error.Message })
+                };
+            }
 
             return NoContent();
         }
 
         [HttpGet("rounds/{specificRound}")]
-        //Return all round robin matches in a specific round
-        public IActionResult GetPlayersSpecificRound(int specificRound)
+        public async Task<IActionResult> GetPlayersSpecificRound(int specificRound)
         {
-            var players = dbContext.Players.ToList();
+            var query = new GetRoundPairsQuery(specificRound);
+            var result = await getRoundPairsHandler.HandleAsync(query);
 
-            var roundRobinService = new RoundRobinService();
-            var result = roundRobinService.GetRoundPairs(players, specificRound); 
-
-            if (result.IsSuccess)
-            {
-                var lines = new List<string>();
-                foreach (var (a, b) in result.Value!)
-                    lines.Add($"{a.Name} vs {b.Name}");
-                return Ok(lines);
-            }
-            else
+            if (!result.IsSuccess)
             {
                 return BadRequest(result.Error);
             }
+
+            return Ok(result.Value!.MatchPairs);
         }
 
         [HttpGet("rounds/max/{numberOfPlayers}")]
-        //RETURN max rounds for n players
         public IActionResult GetMaxRounds(int numberOfPlayers)
         {
-            var maxRounds = new MaxRoundsCalculator();
-            var result = maxRounds.CalculateMaxRounds(numberOfPlayers);
+            var query = new GetMaxRoundsQuery(numberOfPlayers);
+            var result = getMaxRoundsHandler.Handle(query);
 
-            if (result.IsSuccess)
-            {
-                return Ok(result.Value);
-            }
-            else
+            if (!result.IsSuccess)
             {
                 return BadRequest(result.Error);
             }
+
+            return Ok(result.Value!.MaxRounds);
         }
 
         [HttpGet("match/remaining")]
-
         public IActionResult GetUniquePairsAfterXRounds(int numberOfPlayers, int completedRounds)
         {
-            var remainingPairs = new RemainingPairsCalculator();
+            var query = new GetRemainingPairsQuery(numberOfPlayers, completedRounds);
+            var result = getRemainingPairsHandler.Handle(query);
 
-            var result = remainingPairs.CalculateRemainingPairs(numberOfPlayers, completedRounds);
-
-            if (result.IsSuccess)
-            {
-                return Ok(result.Value);
-            }
-            else
+            if (!result.IsSuccess)
             {
                 return BadRequest(result.Error);
             }
+
+            return Ok(result.Value!.RemainingPairs);
         }
 
         [HttpGet("rounds/{id}/{specificRound}")]
-
-        //Return specific round match for a specific player
-        public IActionResult GetSpecificRoundMatches(int numberOfPlayers, int id, int specificRound)
+        public async Task<IActionResult> GetSpecificRoundMatches(int numberOfPlayers, int id, int specificRound)
         {
-            var players = dbContext.Players.ToList();
+            var query = new GetPlayerMatchQuery(numberOfPlayers, id, specificRound);
+            var result = await getPlayerMatchHandler.HandleAsync(query);
 
-
-            var round = new SpecifikPlayerRound();
-            var result = round.GetSpecificRound(players, numberOfPlayers, id, specificRound);
-
-            if (result.IsSuccess)
-            {
-                var (player, opponent) = result.Value;
-                return Ok(new { Player = player, Opponent = opponent });
-            }
-            else
+            if (!result.IsSuccess)
             {
                 return BadRequest(result.Error);
             }
 
+            var data = result.Value!;
+            return Ok(new { Player = data.Player, Opponent = data.Opponent });
         }
 
         [HttpGet("player/{id}/schedule/{numberOfPlayers}")]
-
-        //Return all matches for a specific player
-        public IActionResult GetAllMatchesForPlayer(int numberOfPlayers, int id)
+        public async Task<IActionResult> GetAllMatchesForPlayer(int numberOfPlayers, int id)
         {
-            var players = dbContext.Players.ToList();
+            var query = new GetPlayerScheduleQuery(numberOfPlayers, id);
+            var result = await getPlayerScheduleHandler.HandleAsync(query);
 
-            var round = new SpecifikPlayerRound();
-            var matches = new List<object>();
-
-            for (int specificRound = 1; specificRound < numberOfPlayers; specificRound++)
+            if (!result.IsSuccess)
             {
-                var result = round.GetSpecificRound(players, numberOfPlayers, id, specificRound);
-
-                if (result.IsSuccess)
-                {
-                    var (player, opponent) = result.Value;
-                    matches.Add(new
-                    {
-                        Round = specificRound,
-                        Player = player,
-                        Opponent = opponent
-                    });
-                }
-                else
-                {
-                    return BadRequest(result.Error);
-                }
+                return BadRequest(result.Error);
             }
+
+            var matches = result.Value!.Matches.Select(m => new
+            {
+                Round = m.Round,
+                Player = m.Player,
+                Opponent = m.Opponent
+            });
 
             return Ok(matches);
         }
 
         [HttpGet("name/rounds/{name}/{specificRound}")]
-        //Return specific round match for a specific player
-        //Alias till “direktfråga” för spelare i i runda d, men med namn/objekt.
-        public IActionResult GetSpecificRoundMatchesByName(string name, int specificRound)
+        public async Task<IActionResult> GetSpecificRoundMatchesByName(string name, int specificRound)
         {
-            var players = dbContext.Players.ToList();
-            var round = new SpecifikPlayerRound();
+            var query = new GetPlayerMatchByNameQuery(name, specificRound);
+            var result = await getPlayerMatchByNameHandler.HandleAsync(query);
 
-            var getId = players.Find(p => p.Name == name);
-
-            if (getId is null)
+            if (!result.IsSuccess)
             {
-                return NotFound(new { Error = $"Spelare med namn '{name}' hittades inte." });
+                return result.Error!.Code switch
+                {
+                    "PLAYER_NOT_FOUND" => NotFound(new { Error = result.Error.Message }),
+                    _ => BadRequest(result.Error)
+                };
             }
 
-
-
-            var result = round.GetSpecificRound(players, players.Count, getId.Id-1, specificRound);
-            if (result.IsSuccess)
-            {
-                var (player, opponent) = result.Value;
-                return Ok(new { Player = player, Opponent = opponent });
-            }
-            else
-            {
-                return BadRequest(result.Error);
-            }
-
+            var data = result.Value!;
+            return Ok(new { Player = data.Player, Opponent = data.Opponent });
         }
     }
 }
