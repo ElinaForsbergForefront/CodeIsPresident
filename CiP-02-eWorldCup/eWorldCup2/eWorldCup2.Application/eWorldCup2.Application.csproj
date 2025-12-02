@@ -11,4 +11,8 @@
     <ProjectReference Include="..\eWorldCup2.Infrastructure\eWorldCup2.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
+
 </Project>
